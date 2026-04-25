@@ -17,6 +17,7 @@ Personal notes and scripts for things I configured after a fresh Ubuntu 26.04 LT
 | [`scripts/setup-vscode.sh`](scripts/setup-vscode.sh) | Install VS Code from Microsoft's official apt repo | `sudo bash` |
 | [`scripts/setup-nodejs.sh`](scripts/setup-nodejs.sh) | Install [fnm](https://github.com/Schniz/fnm) (Node version manager) + latest Node LTS | `bash` (no sudo) |
 | [`scripts/setup-python.sh`](scripts/setup-python.sh) | Install [uv](https://github.com/astral-sh/uv) — Astral's fast Python venv + package manager | `bash` (no sudo) |
+| [`scripts/setup-docker.sh`](scripts/setup-docker.sh) | Install Docker Engine + Compose v2 from Docker's official apt repo, add user to `docker` group | `sudo bash` |
 
 ## Notes
 
@@ -37,3 +38,4 @@ Personal notes and scripts for things I configured after a fresh Ubuntu 26.04 LT
 - [ ] VS Code
 - [ ] Node.js via fnm
 - [ ] Python via uv
+- [ ] Docker + Compose v2
