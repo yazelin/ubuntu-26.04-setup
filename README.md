@@ -34,8 +34,8 @@ Personal notes and scripts for things I configured after a fresh Ubuntu 26.04 LT
 ## Checklist
 
 - [x] fcitx5 + Boshiamy input
-- [ ] Chromium (remove Firefox)
-- [ ] VS Code
-- [ ] Node.js via fnm
-- [ ] Python via uv
-- [ ] Docker + Compose v2
+- [x] Chromium (remove Firefox)
+- [x] VS Code
+- [x] Node.js via fnm
+- [x] Python via uv
+- [x] Docker + Compose v2
