@@ -20,6 +20,7 @@ everything.
 | File | What it shows | Run |
 |---|---|---|
 | [`pydantic-ai-hello.py`](pydantic-ai-hello.py) | PydanticAI + Ollama: schema-validated structured extraction from free-form text | `./examples/pydantic-ai-hello.py` |
+| [`pydantic-ai-image.py`](pydantic-ai-image.py) | Multimodal: pass an image to a vision-capable model (Gemma 4) and get structured `ImageDescription` back | `./examples/pydantic-ai-image.py path/to/photo.jpg` |
 
 ## Switching the model
 
