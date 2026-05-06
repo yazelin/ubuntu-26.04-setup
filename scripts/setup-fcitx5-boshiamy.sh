@@ -68,23 +68,41 @@ echo "==> 7/7  Installing kimpanel GNOME Shell extension (optional)"
 # `gnome-shell-extension-kimpanel` was dropped from Ubuntu repos after 22.04,
 # so we build from source. fcitx5 works fine without it — it only adds
 # integration with the GNOME top-bar panel.
+# The upstream repo (wengxt/gnome-shell-extension-kimpanel) uses CMake and
+# produces a zip via `make install-zip`; we then unzip into the user's
+# local extensions dir.
+apt-get install -y cmake build-essential gettext zip unzip git || true
+
 KIMPANEL_SRC="/tmp/gnome-shell-extension-kimpanel"
-if command -v git >/dev/null && command -v make >/dev/null; then
-    rm -rf "$KIMPANEL_SRC"
-    if sudo -u "$REAL_USER" git clone --depth 1 \
-        https://github.com/wengxt/gnome-shell-extension-kimpanel.git \
-        "$KIMPANEL_SRC" 2>/dev/null; then
-        if sudo -u "$REAL_USER" make -C "$KIMPANEL_SRC" install 2>/dev/null; then
-            echo "    kimpanel installed to ~/.local/share/gnome-shell/extensions/"
-            echo "    Enable after re-login with:  gnome-extensions enable kimpanel@kde.org"
+KIMPANEL_UUID="kimpanel@kde.org"
+EXT_DIR="$REAL_HOME/.local/share/gnome-shell/extensions/$KIMPANEL_UUID"
+
+rm -rf "$KIMPANEL_SRC"
+if sudo -u "$REAL_USER" git clone --depth 1 \
+    https://github.com/wengxt/gnome-shell-extension-kimpanel.git \
+    "$KIMPANEL_SRC"; then
+    if sudo -u "$REAL_USER" bash -c "
+        set -e
+        cd '$KIMPANEL_SRC'
+        mkdir -p build
+        cd build
+        cmake ..
+        make install-zip
+    "; then
+        ZIP_FILE=$(find "$KIMPANEL_SRC/build" -maxdepth 2 -name '*.zip' | head -1)
+        if [ -n "$ZIP_FILE" ]; then
+            sudo -u "$REAL_USER" mkdir -p "$EXT_DIR"
+            sudo -u "$REAL_USER" unzip -o "$ZIP_FILE" -d "$EXT_DIR" >/dev/null
+            echo "    kimpanel installed to $EXT_DIR"
+            echo "    Enable after re-login with:  gnome-extensions enable $KIMPANEL_UUID"
         else
-            echo "    (kimpanel build failed — skipping, fcitx5 still works)"
+            echo "    (build produced no zip — skipping, fcitx5 still works)"
         fi
     else
-        echo "    (kimpanel clone failed — skipping, fcitx5 still works)"
+        echo "    (kimpanel cmake/make failed — skipping, fcitx5 still works)"
     fi
 else
-    echo "    (git/make missing — skipping kimpanel; install via https://extensions.gnome.org/extension/261/kimpanel/ if desired)"
+    echo "    (kimpanel clone failed — skipping, fcitx5 still works)"
 fi
 
 echo ""
