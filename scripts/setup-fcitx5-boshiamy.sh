@@ -1,6 +1,9 @@
 #!/bin/bash
 # Set up fcitx5 with Boshiamy on Ubuntu 26.04 (GNOME Wayland)
 # Run with: sudo bash ~/setup-fcitx5.sh
+#
+# Assumes a fresh Ubuntu install — installs fcitx5 packages from apt,
+# sets it as the system default IM, and configures GNOME Wayland for it.
 
 set -e
 
@@ -14,11 +17,25 @@ REAL_HOME=$(getent passwd "$REAL_USER" | cut -d: -f6)
 
 echo "==> Setting up fcitx5 for user: $REAL_USER ($REAL_HOME)"
 
-echo "==> 1/5  Masking ibus systemd unit"
+echo "==> 1/7  Installing fcitx5 + Boshiamy packages from apt"
+export DEBIAN_FRONTEND=noninteractive
+apt-get update
+apt-get install -y \
+    fcitx5 \
+    fcitx5-config-qt \
+    fcitx5-frontend-all \
+    fcitx5-chinese-addons \
+    fcitx5-table-boshiamy \
+    im-config
+
+echo "==> 2/7  Setting fcitx5 as system default input method (im-config)"
+sudo -u "$REAL_USER" im-config -n fcitx5 || true
+
+echo "==> 3/7  Masking ibus systemd unit"
 sudo -u "$REAL_USER" XDG_RUNTIME_DIR="/run/user/$(id -u "$REAL_USER")" \
     systemctl --user mask org.freedesktop.IBus.session.GNOME.service || true
 
-echo "==> 2/5  Adding fcitx5 to user autostart"
+echo "==> 4/7  Adding fcitx5 to user autostart"
 sudo -u "$REAL_USER" mkdir -p "$REAL_HOME/.config/autostart"
 if [ -f /usr/share/applications/org.fcitx.Fcitx5.desktop ]; then
     sudo -u "$REAL_USER" cp /usr/share/applications/org.fcitx.Fcitx5.desktop \
@@ -27,7 +44,7 @@ else
     echo "    (fcitx5 .desktop not found, skipping)"
 fi
 
-echo "==> 3/5  Writing /etc/environment.d/fcitx5.conf"
+echo "==> 5/7  Writing /etc/environment.d/fcitx5.conf"
 mkdir -p /etc/environment.d
 cat > /etc/environment.d/fcitx5.conf <<'EOF'
 GTK_IM_MODULE=fcitx
@@ -36,14 +53,45 @@ XMODIFIERS=@im=fcitx
 SDL_IM_MODULE=fcitx
 EOF
 
-echo "==> 4/5  Installing gnome-shell-extension-kimpanel"
-DEBIAN_FRONTEND=noninteractive apt-get install -y gnome-shell-extension-kimpanel || \
-    echo "    (kimpanel install failed — fcitx5 will still work, just without GNOME panel integration)"
+# Belt-and-suspenders: also append to /etc/environment so non-systemd-user
+# session paths (some login managers, ssh -X, snap apps) still pick it up.
+echo "==> 6/7  Ensuring env vars in /etc/environment"
+for line in \
+    'GTK_IM_MODULE=fcitx' \
+    'QT_IM_MODULE=fcitx' \
+    'XMODIFIERS=@im=fcitx' \
+    'SDL_IM_MODULE=fcitx'; do
+    grep -qxF "$line" /etc/environment || echo "$line" >> /etc/environment
+done
 
-echo "==> 5/5  Done."
+echo "==> 7/7  Installing kimpanel GNOME Shell extension (optional)"
+# `gnome-shell-extension-kimpanel` was dropped from Ubuntu repos after 22.04,
+# so we build from source. fcitx5 works fine without it — it only adds
+# integration with the GNOME top-bar panel.
+KIMPANEL_SRC="/tmp/gnome-shell-extension-kimpanel"
+if command -v git >/dev/null && command -v make >/dev/null; then
+    rm -rf "$KIMPANEL_SRC"
+    if sudo -u "$REAL_USER" git clone --depth 1 \
+        https://github.com/wengxt/gnome-shell-extension-kimpanel.git \
+        "$KIMPANEL_SRC" 2>/dev/null; then
+        if sudo -u "$REAL_USER" make -C "$KIMPANEL_SRC" install 2>/dev/null; then
+            echo "    kimpanel installed to ~/.local/share/gnome-shell/extensions/"
+            echo "    Enable after re-login with:  gnome-extensions enable kimpanel@kde.org"
+        else
+            echo "    (kimpanel build failed — skipping, fcitx5 still works)"
+        fi
+    else
+        echo "    (kimpanel clone failed — skipping, fcitx5 still works)"
+    fi
+else
+    echo "    (git/make missing — skipping kimpanel; install via https://extensions.gnome.org/extension/261/kimpanel/ if desired)"
+fi
+
+echo ""
+echo "==> Done."
 echo ""
 echo "Next steps:"
 echo "  1. LOG OUT and log back in (required — env vars only load on new session)"
 echo "  2. Run:  fcitx5-configtool"
-echo "  3. In the right pane, click '+' and add 'Boshiamy'"
+echo "  3. In the right pane, click '+' and add 'Boshiamy' (嘸蝦米)"
 echo "  4. Toggle input with Ctrl+Space"
