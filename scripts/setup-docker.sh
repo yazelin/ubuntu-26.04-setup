@@ -20,8 +20,12 @@ for pkg in docker.io docker-doc docker-compose docker-compose-v2 podman-docker c
 done
 
 echo "==> 2/6  Installing prerequisites"
+# `util-linux-extra` provides `newgrp` / `sg` / `chsh` — split out of the
+# default util-linux in 24.04+ and not present on minimal/server installs,
+# so users get "newgrp: command not found" after this script otherwise.
 DEBIAN_FRONTEND=noninteractive apt-get update
-DEBIAN_FRONTEND=noninteractive apt-get install -y ca-certificates curl gnupg
+DEBIAN_FRONTEND=noninteractive apt-get install -y \
+    ca-certificates curl gnupg util-linux-extra
 
 echo "==> 3/6  Adding Docker's official GPG key"
 install -m 0755 -d /etc/apt/keyrings
@@ -61,8 +65,9 @@ echo "Versions:"
 docker --version
 docker compose version
 echo ""
-echo "Done. IMPORTANT: log out and back in (or run 'newgrp docker') for"
-echo "the docker group membership to take effect — otherwise you'll still"
-echo "need sudo for docker commands."
+echo "Done. IMPORTANT: log out and back in (or run 'newgrp docker' in your"
+echo "current shell) for the docker group membership to take effect — otherwise"
+echo "you'll still need sudo for docker commands. (newgrp is provided by the"
+echo "util-linux-extra package, which this script just installed.)"
 echo ""
 echo "Test with:  docker run --rm hello-world"
