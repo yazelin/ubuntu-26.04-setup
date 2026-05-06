@@ -47,7 +47,7 @@ Runnable demos pairing the local Ollama install with Python tooling — see [`ex
   sudo systemctl daemon-reload && sudo systemctl restart ollama
   ```
   Or re-run `sudo bash scripts/setup-ollama.sh --no-vulkan`.
-- For Vulkan acceleration on Intel Arc, use a non-Gemma-4 model (`qwen3:7b` is verified stable).
+- For Vulkan acceleration on Intel Arc, use a non-Gemma-4 model (`qwen3:8b` is verified stable).
 - To override the auto-downgrade and use Vulkan with Gemma 4 anyway: `--force-vulkan`.
 
 ## Tooling choices

@@ -15,7 +15,7 @@ free-form Chinese description, validated against a Pydantic schema.
 Run:
     ./examples/pydantic-ai-hello.py
     # or with a different model:
-    OLLAMA_MODEL=qwen3:7b ./examples/pydantic-ai-hello.py
+    OLLAMA_MODEL=qwen3:8b ./examples/pydantic-ai-hello.py
 
 Prereqs:
     1. Ollama running (localhost:11434) — `sudo bash scripts/setup-ollama.sh`

@@ -26,7 +26,7 @@ everything.
 All demos respect `OLLAMA_MODEL` env var:
 
 ```bash
-OLLAMA_MODEL=qwen3:7b      ./examples/pydantic-ai-hello.py   # ~4.7GB, text-only
+OLLAMA_MODEL=qwen3:8b      ./examples/pydantic-ai-hello.py   # 5.2GB, text-only
 OLLAMA_MODEL=gemma4:e2b    ./examples/pydantic-ai-hello.py   # 7.2GB, multimodal
 OLLAMA_MODEL=gemma4:26b    ./examples/pydantic-ai-hello.py   # 18GB MoE
 ```

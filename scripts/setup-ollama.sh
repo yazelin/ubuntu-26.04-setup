@@ -9,13 +9,13 @@
 #
 #   I want a smaller / faster first download:
 #       sudo bash setup-ollama.sh --model gemma4:e2b   # 7.2GB
-#       sudo bash setup-ollama.sh --model qwen3:7b     # ~4.7GB, text-only
+#       sudo bash setup-ollama.sh --model qwen3:8b     # 5.2GB, text-only
 #
 #   I want my main model (32GB RAM, no dGPU):
 #       sudo bash setup-ollama.sh --model gemma4:26b   # 18GB MoE
 #
 #   I want multiple models pre-downloaded:
-#       sudo bash setup-ollama.sh --model gemma4:e4b,qwen3:7b
+#       sudo bash setup-ollama.sh --model gemma4:e4b,qwen3:8b
 #
 #   I'll pull models myself later:
 #       sudo bash setup-ollama.sh --no-pull
@@ -54,7 +54,7 @@
 #   gemma4:e4b   9.6GB   default, multimodal, effective 4.5B params
 #   gemma4:26b    18GB   MoE (3.8B active), best CPU-only quality/speed
 #   gemma4:31b    20GB   dense, needs GPU to be usable
-#   qwen3:7b    ~4.7GB   text-only, strong CJK + code (HumanEval 76)
+#   qwen3:8b    5.2GB   text-only, strong CJK + code (HumanEval 76)
 #
 #   Gemma 4 sizes are larger than param count would suggest because
 #   they bundle vision + audio encoders. Use qwen3 for text-only.
@@ -172,7 +172,7 @@ if [ "$ACTION" = "install" ]; then
                 echo "       output (NaN in attention/KV cache). Defaulting to CPU."
                 echo "       To override anyway: re-run with --force-vulkan"
                 echo "       For Vulkan acceleration, use a non-Gemma-4 model"
-                echo "       (e.g. --model qwen3:7b) — that combo is stable."
+                echo "       (e.g. --model qwen3:8b) — that combo is stable."
             else
                 cat > "$SERVICE_OVERRIDE_DIR/override.conf" <<'EOF'
 [Service]
