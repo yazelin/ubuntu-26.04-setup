@@ -18,6 +18,13 @@ Personal notes and scripts for things I configured after a fresh Ubuntu 26.04 LT
 | [`scripts/setup-nodejs.sh`](scripts/setup-nodejs.sh) | Install [fnm](https://github.com/Schniz/fnm) (Node version manager) + latest Node LTS | `bash` (no sudo) |
 | [`scripts/setup-python.sh`](scripts/setup-python.sh) | Install [uv](https://github.com/astral-sh/uv) — Astral's fast Python venv + package manager | `bash` (no sudo) |
 | [`scripts/setup-docker.sh`](scripts/setup-docker.sh) | Install Docker Engine + Compose v2 from Docker's official apt repo, add user to `docker` group | `sudo bash` |
+| [`scripts/setup-ollama.sh`](scripts/setup-ollama.sh) | Install [Ollama](https://ollama.com) with auto GPU detection (CUDA / ROCm / Intel Vulkan / CPU). Optional `--with-pi` for [Pi](https://pi.dev) coding agent. Supports `--uninstall`. Run `--help` for use-case examples. | `sudo bash` |
+
+## Examples
+
+Runnable demos pairing the local Ollama install with Python tooling — see [`examples/`](examples/).
+
+- [`examples/pydantic-ai-hello.py`](examples/pydantic-ai-hello.py) — PydanticAI + Ollama, schema-validated structured extraction
 
 ## Notes
 
@@ -39,3 +46,4 @@ Personal notes and scripts for things I configured after a fresh Ubuntu 26.04 LT
 - [x] Node.js via fnm
 - [x] Python via uv
 - [x] Docker + Compose v2
+- [x] Ollama (local LLM runtime, GPU auto-detected)
