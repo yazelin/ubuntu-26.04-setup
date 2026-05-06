@@ -19,6 +19,8 @@ Personal notes and scripts for things I configured after a fresh Ubuntu 26.04 LT
 | [`scripts/setup-python.sh`](scripts/setup-python.sh) | Install [uv](https://github.com/astral-sh/uv) — Astral's fast Python venv + package manager | `bash` (no sudo) |
 | [`scripts/setup-docker.sh`](scripts/setup-docker.sh) | Install Docker Engine + Compose v2 from Docker's official apt repo, add user to `docker` group | `sudo bash` |
 | [`scripts/setup-ollama.sh`](scripts/setup-ollama.sh) | Install [Ollama](https://ollama.com) with auto GPU detection (CUDA / ROCm / Intel Vulkan / CPU). Optional `--with-pi` for [Pi](https://pi.dev) coding agent. Supports `--uninstall`. Run `--help` for use-case examples. | `sudo bash` |
+| [`scripts/setup-rust.sh`](scripts/setup-rust.sh) | Install Rust toolchain via [rustup](https://rustup.rs) (user-level, latest stable). Supports `--update` and `--uninstall`. | `bash` (no sudo) |
+| [`scripts/setup-tauri-deps.sh`](scripts/setup-tauri-deps.sh) | Install Linux system libraries needed to build [Tauri 2](https://v2.tauri.app) apps (WebKitGTK, etc). | `sudo bash` |
 
 ## Examples
 
@@ -71,6 +73,7 @@ At your own risk — re-test with a long prompt (300+ tokens) before trusting it
 - **Editor**: VS Code only
 - **Node.js**: managed via `fnm`, not system apt
 - **Python**: managed via `uv` (handles Python versions, venvs, packages)
+- **Rust**: managed via `rustup` (handles Rust versions, components, targets)
 - **Git**: system apt (already installed by default on Ubuntu)
 
 ## Checklist
@@ -82,3 +85,5 @@ At your own risk — re-test with a long prompt (300+ tokens) before trusting it
 - [x] Python via uv
 - [x] Docker + Compose v2
 - [x] Ollama (local LLM runtime, GPU auto-detected)
+- [x] Rust via rustup
+- [x] Tauri 2 build dependencies
