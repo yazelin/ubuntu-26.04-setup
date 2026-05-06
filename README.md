@@ -30,6 +30,41 @@ Runnable demos pairing the local Ollama install with Python tooling — see [`ex
 
 - [`notes/wayland-vs-xorg.md`](notes/wayland-vs-xorg.md) — Why 26.04 dropped Xorg and what that means for input methods
 
+## Known issues
+
+### Intel Arc + Vulkan + Ollama = broken (2026-05)
+
+**Symptom**: any LLM running through the Vulkan backend on an Intel Arc iGPU (Meteor Lake / Lunar Lake) misbehaves:
+- `gemma4:e4b` → garbled output, repetition loops
+- `qwen3:8b` → stuck at 100% GPU with no output emitted (NaN loop)
+
+**Verified on**:
+- Ubuntu 26.04 LTS
+- Intel Core Ultra 7 155H, Intel Arc Graphics (MTL)
+- Mesa 26.0.3-1ubuntu1 (latest available May 2026)
+- Ollama 0.23.1 (latest as of 2026-05-05)
+
+**Cause**: bug in either Mesa's Intel Vulkan compute path or llama.cpp's Vulkan compute shaders (or both). NaN propagates through attention / KV cache after a short generation length.
+
+**CPU performance reference** (Ultra 7 155H, no GPU):
+- `qwen3:8b` → 7 tok/s
+- `gemma4:e4b` → ~8–12 tok/s (estimate, varies with prompt)
+
+**What `setup-ollama.sh` does**: auto-detects Intel Arc and **defaults to CPU**, no Vulkan override written. Works correctly out of the box for fresh installs.
+
+**If you already have Vulkan enabled and want to switch back**:
+```bash
+sudo rm /etc/systemd/system/ollama.service.d/override.conf
+sudo systemctl daemon-reload && sudo systemctl restart ollama
+```
+Or re-run `sudo bash scripts/setup-ollama.sh` (default behaviour now removes the override).
+
+**To attempt Vulkan anyway** (e.g. once a future Mesa release fixes it):
+```bash
+sudo bash scripts/setup-ollama.sh --force-vulkan
+```
+At your own risk — re-test with a long prompt (300+ tokens) before trusting it.
+
 ## Tooling choices
 
 - **Browser**: Chromium (snap), no Firefox

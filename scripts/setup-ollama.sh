@@ -3,18 +3,28 @@
 #
 # ─── Common scenarios ────────────────────────────────────────────────
 #
-#   I just want Ollama, with a small model ready to chat:
+#   I just want Ollama, with a model ready to chat:
 #       sudo bash setup-ollama.sh
-#       (pulls gemma4:e4b, ~3GB — fast first run)
+#       (pulls gemma4:e4b — 9.6GB, multimodal: text+image+audio)
+#
+#   I want a smaller / faster first download:
+#       sudo bash setup-ollama.sh --model gemma4:e2b   # 7.2GB
+#       sudo bash setup-ollama.sh --model qwen3:8b     # 5.2GB, text-only
 #
 #   I want my main model (32GB RAM, no dGPU):
-#       sudo bash setup-ollama.sh --model gemma4:26b
+#       sudo bash setup-ollama.sh --model gemma4:26b   # 18GB MoE
 #
 #   I want multiple models pre-downloaded:
-#       sudo bash setup-ollama.sh --model gemma4:e4b,qwen3:7b
+#       sudo bash setup-ollama.sh --model gemma4:e4b,qwen3:8b
 #
 #   I'll pull models myself later:
 #       sudo bash setup-ollama.sh --no-pull
+#
+#   I have an Intel Arc iGPU and want to try Vulkan anyway:
+#       sudo bash setup-ollama.sh --force-vulkan
+#       (NOT recommended — see "Known issues" in README.
+#        Default is CPU on Intel Arc because Vulkan inference is broken
+#        as of Mesa 26.0.3 + Ollama 0.23.1, May 2026.)
 #
 #   I also want Pi (pi.dev) — a Claude-Code-style terminal coding agent
 #   that can use my local models:
@@ -33,17 +43,38 @@
 #
 #   --model X[,Y,Z]   Models to pre-pull. Default: gemma4:e4b
 #   --no-pull         Skip model download entirely
+#   --no-vulkan       Force CPU (redundant on Intel Arc; useful for scripts)
+#   --force-vulkan    Try Vulkan on Intel Arc (NOT recommended, see README)
 #   --with-pi         Also install (or remove) Pi from pi.dev
 #   --uninstall       Remove instead of install
 #   --purge           Only with --uninstall: also delete ~/.ollama
 #   -h, --help        Print this help
 #
+# ─── Model sizes (for picking --model) ───────────────────────────────
+#
+#   gemma4:e2b   7.2GB   small multimodal,  effective 2.3B params
+#   gemma4:e4b   9.6GB   default, multimodal, effective 4.5B params
+#   gemma4:26b    18GB   MoE (3.8B active), best CPU-only quality/speed
+#   gemma4:31b    20GB   dense, needs GPU to be usable
+#   qwen3:8b    5.2GB   text-only, strong CJK + code (HumanEval 76)
+#
+#   Gemma 4 sizes are larger than param count would suggest because
+#   they bundle vision + audio encoders. Use qwen3 for text-only.
+#
 # ─── GPU detection (automatic, you don't need to do anything) ────────
 #
 #   nvidia-smi present  → Ollama uses CUDA (auto)
 #   amdgpu / rocm       → Ollama uses ROCm (auto)
-#   Intel iGPU only     → enable Vulkan (OLLAMA_VULKAN=1, e.g. Intel Arc)
+#   Intel iGPU only     → CPU (Vulkan disabled, see below)
 #   none                → CPU only
+#
+#   Why Intel iGPU defaults to CPU (2026-05):
+#     Vulkan + Intel Arc + LLM inference is currently broken across all
+#     tested models (Gemma 4 garbles, Qwen 3 stuck) on the latest Mesa
+#     (26.0.3) and the latest Ollama (0.23.1). CPU mode works fine.
+#     This will likely be fixed in a future Mesa / llama.cpp release;
+#     re-run the script then to pick up the fix, or use --force-vulkan
+#     to attempt acceleration on your own.
 #
 #   Check what got picked after install:
 #       systemctl show ollama | grep Environment
@@ -72,15 +103,19 @@ ACTION="install"
 WITH_PI=0
 PURGE=0
 NO_PULL=0
+NO_VULKAN=0
+FORCE_VULKAN=0
 MODELS="gemma4:e4b"
 
 while [ $# -gt 0 ]; do
     case "$1" in
-        --uninstall) ACTION="uninstall" ;;
-        --with-pi)   WITH_PI=1 ;;
-        --purge)     PURGE=1 ;;
-        --no-pull)   NO_PULL=1 ;;
-        --model)     MODELS="$2"; shift ;;
+        --uninstall)     ACTION="uninstall" ;;
+        --with-pi)       WITH_PI=1 ;;
+        --purge)         PURGE=1 ;;
+        --no-pull)       NO_PULL=1 ;;
+        --no-vulkan)     NO_VULKAN=1 ;;
+        --force-vulkan)  FORCE_VULKAN=1 ;;
+        --model)         MODELS="$2"; shift ;;
         -h|--help) ;;  # handled above, before root check
         *) echo "Unknown flag: $1" >&2; exit 1 ;;
     esac
@@ -119,13 +154,33 @@ if [ "$ACTION" = "install" ]; then
 
     SERVICE_OVERRIDE_DIR="/etc/systemd/system/ollama.service.d"
     mkdir -p "$SERVICE_OVERRIDE_DIR"
+
+    # Intel Arc + Vulkan is currently unstable for LLM inference.
+    # Verified 2026-05 on Ubuntu 26.04 + Core Ultra 7 155H with the latest
+    # Mesa (26.0.3) and the latest Ollama (0.23.1):
+    #   - qwen3:8b   → stuck on GPU 100% with no output (NaN loop)
+    #   - gemma4:e4b → garbled output / repetition loops
+    # CPU mode works correctly for both. Default to CPU on Intel Arc;
+    # --force-vulkan to attempt Vulkan anyway (e.g. on a future Mesa
+    # version that has fixed the underlying bug).
+
     case "$BACKEND" in
         vulkan-intel)
-            cat > "$SERVICE_OVERRIDE_DIR/override.conf" <<'EOF'
+            if [ "$FORCE_VULKAN" = "1" ]; then
+                cat > "$SERVICE_OVERRIDE_DIR/override.conf" <<'EOF'
 [Service]
 Environment="OLLAMA_VULKAN=1"
 EOF
-            echo "    Wrote OLLAMA_VULKAN=1 to systemd override (Intel Arc/iGPU acceleration)"
+                echo "    --force-vulkan: wrote OLLAMA_VULKAN=1"
+                echo "    NOTE: Vulkan + Intel Arc is currently unstable for LLM"
+                echo "    inference (verified 2026-05). Expect garbled output or"
+                echo "    stuck inference. See README 'Known issues' for details."
+            else
+                rm -f "$SERVICE_OVERRIDE_DIR/override.conf"
+                echo "    Intel Arc detected. Vulkan + LLM inference is currently"
+                echo "    broken on Mesa (verified 2026-05 across qwen3 / gemma4)."
+                echo "    Defaulting to CPU. Use --force-vulkan to try Vulkan anyway."
+            fi
             ;;
         cuda|rocm)
             # Remove any stale override from a previous Vulkan-mode install
@@ -137,6 +192,14 @@ EOF
             echo "    No GPU detected — running on CPU only"
             ;;
     esac
+
+    # --no-vulkan is now redundant on Intel Arc (CPU is the default), but
+    # kept as an explicit opt-out for scripts/automation and for future
+    # Mesa versions where the default may flip back to Vulkan.
+    if [ "$NO_VULKAN" = "1" ] && [ -f "$SERVICE_OVERRIDE_DIR/override.conf" ]; then
+        rm -f "$SERVICE_OVERRIDE_DIR/override.conf"
+        echo "    --no-vulkan: removed Vulkan override (CPU mode)"
+    fi
 
     echo "==> 3/5  Enabling and (re)starting Ollama service"
     systemctl daemon-reload
