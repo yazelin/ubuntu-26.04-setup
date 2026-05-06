@@ -32,23 +32,38 @@ Runnable demos pairing the local Ollama install with Python tooling — see [`ex
 
 ## Known issues
 
-### Gemma 4 + Intel Arc + Vulkan = garbled output
+### Intel Arc + Vulkan + Ollama = broken (2026-05)
 
-**Symptom**: running `gemma4:*` (e2b, e4b, 26b, 31b) on a machine with only an Intel iGPU (Arc Graphics, Meteor Lake / Lunar Lake) produces garbled output and repetition loops. CPU mode is fine.
+**Symptom**: any LLM running through the Vulkan backend on an Intel Arc iGPU (Meteor Lake / Lunar Lake) misbehaves:
+- `gemma4:e4b` → garbled output, repetition loops
+- `qwen3:8b` → stuck at 100% GPU with no output emitted (NaN loop)
 
-**Cause**: numerical instability (NaN in attention / KV cache) in the Vulkan shader path for Gemma 4's architecture as of 2026-05. Mesa Vulkan and llama.cpp's Vulkan backend haven't fully caught up.
+**Verified on**:
+- Ubuntu 26.04 LTS
+- Intel Core Ultra 7 155H, Intel Arc Graphics (MTL)
+- Mesa 26.0.3-1ubuntu1 (latest available May 2026)
+- Ollama 0.23.1 (latest as of 2026-05-05)
 
-**Fix**:
-- Verified on Ubuntu 26.04 + Intel Core Ultra 7 155H (Arc iGPU)
-- `setup-ollama.sh` auto-detects this combo and falls back to CPU. No action needed for fresh installs as of this writing.
-- If you hit it after switching models post-install:
-  ```bash
-  sudo rm /etc/systemd/system/ollama.service.d/override.conf
-  sudo systemctl daemon-reload && sudo systemctl restart ollama
-  ```
-  Or re-run `sudo bash scripts/setup-ollama.sh --no-vulkan`.
-- For Vulkan acceleration on Intel Arc, use a non-Gemma-4 model (`qwen3:8b` is verified stable).
-- To override the auto-downgrade and use Vulkan with Gemma 4 anyway: `--force-vulkan`.
+**Cause**: bug in either Mesa's Intel Vulkan compute path or llama.cpp's Vulkan compute shaders (or both). NaN propagates through attention / KV cache after a short generation length.
+
+**CPU performance reference** (Ultra 7 155H, no GPU):
+- `qwen3:8b` → 7 tok/s
+- `gemma4:e4b` → ~8–12 tok/s (estimate, varies with prompt)
+
+**What `setup-ollama.sh` does**: auto-detects Intel Arc and **defaults to CPU**, no Vulkan override written. Works correctly out of the box for fresh installs.
+
+**If you already have Vulkan enabled and want to switch back**:
+```bash
+sudo rm /etc/systemd/system/ollama.service.d/override.conf
+sudo systemctl daemon-reload && sudo systemctl restart ollama
+```
+Or re-run `sudo bash scripts/setup-ollama.sh` (default behaviour now removes the override).
+
+**To attempt Vulkan anyway** (e.g. once a future Mesa release fixes it):
+```bash
+sudo bash scripts/setup-ollama.sh --force-vulkan
+```
+At your own risk — re-test with a long prompt (300+ tokens) before trusting it.
 
 ## Tooling choices
 
