@@ -3,12 +3,16 @@
 #
 # ─── Common scenarios ────────────────────────────────────────────────
 #
-#   I just want Ollama, with a small model ready to chat:
+#   I just want Ollama, with a model ready to chat:
 #       sudo bash setup-ollama.sh
-#       (pulls gemma4:e4b, ~3GB — fast first run)
+#       (pulls gemma4:e4b — 9.6GB, multimodal: text+image+audio)
+#
+#   I want a smaller / faster first download:
+#       sudo bash setup-ollama.sh --model gemma4:e2b   # 7.2GB
+#       sudo bash setup-ollama.sh --model qwen3:7b     # ~4.7GB, text-only
 #
 #   I want my main model (32GB RAM, no dGPU):
-#       sudo bash setup-ollama.sh --model gemma4:26b
+#       sudo bash setup-ollama.sh --model gemma4:26b   # 18GB MoE
 #
 #   I want multiple models pre-downloaded:
 #       sudo bash setup-ollama.sh --model gemma4:e4b,qwen3:7b
@@ -37,6 +41,17 @@
 #   --uninstall       Remove instead of install
 #   --purge           Only with --uninstall: also delete ~/.ollama
 #   -h, --help        Print this help
+#
+# ─── Model sizes (for picking --model) ───────────────────────────────
+#
+#   gemma4:e2b   7.2GB   small multimodal,  effective 2.3B params
+#   gemma4:e4b   9.6GB   default, multimodal, effective 4.5B params
+#   gemma4:26b    18GB   MoE (3.8B active), best CPU-only quality/speed
+#   gemma4:31b    20GB   dense, needs GPU to be usable
+#   qwen3:7b    ~4.7GB   text-only, strong CJK + code (HumanEval 76)
+#
+#   Gemma 4 sizes are larger than param count would suggest because
+#   they bundle vision + audio encoders. Use qwen3 for text-only.
 #
 # ─── GPU detection (automatic, you don't need to do anything) ────────
 #

@@ -26,8 +26,9 @@ everything.
 All demos respect `OLLAMA_MODEL` env var:
 
 ```bash
-OLLAMA_MODEL=qwen3:7b      ./examples/pydantic-ai-hello.py
-OLLAMA_MODEL=gemma4:26b    ./examples/pydantic-ai-hello.py
+OLLAMA_MODEL=qwen3:7b      ./examples/pydantic-ai-hello.py   # ~4.7GB, text-only
+OLLAMA_MODEL=gemma4:e2b    ./examples/pydantic-ai-hello.py   # 7.2GB, multimodal
+OLLAMA_MODEL=gemma4:26b    ./examples/pydantic-ai-hello.py   # 18GB MoE
 ```
 
 If the model isn't pulled yet, do `ollama pull <name>` first.
