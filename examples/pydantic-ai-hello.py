@@ -32,7 +32,7 @@ from __future__ import annotations
 import os
 from pydantic import BaseModel, Field
 from pydantic_ai import Agent
-from pydantic_ai.models.openai import OpenAIModel
+from pydantic_ai.models.openai import OpenAIChatModel
 from pydantic_ai.providers.openai import OpenAIProvider
 from rich import print
 
@@ -47,7 +47,7 @@ class Product(BaseModel):
 MODEL_NAME = os.environ.get("OLLAMA_MODEL", "gemma4:e4b")
 OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://localhost:11434/v1")
 
-model = OpenAIModel(
+model = OpenAIChatModel(
     MODEL_NAME,
     provider=OpenAIProvider(base_url=OLLAMA_URL, api_key="ollama"),
 )
