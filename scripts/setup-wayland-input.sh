@@ -21,9 +21,12 @@
 #   sudo bash setup-wayland-input.sh --uninstall # remove
 #   bash setup-wayland-input.sh --help
 #
-# After install you must log out and back in once for the `input` group
-# membership to apply (or run `newgrp input` in your current shell) —
-# without it, ydotool will fail with a permission error on /dev/uinput.
+# After install you must REBOOT (or fully log out of the GNOME desktop
+# session) so the `input` group is applied to your systemd user manager.
+# Re-opening a terminal or SSH-relog is NOT enough — systemd --user
+# persists across those, and ydotoold will keep failing with
+# "failed to open uinput device: Permission denied" until the manager
+# itself restarts with the new group.
 #
 # Reference:
 #   https://github.com/bugaevc/wl-clipboard
@@ -60,8 +63,15 @@ REAL_USER="${SUDO_USER:-$USER}"
 CANDIDATES=(wl-clipboard ydotool)
 
 if [ "$ACTION" = "uninstall" ]; then
-    echo "==> 1/3  Stopping ydotoold service (if present)"
-    systemctl disable --now ydotoold 2>/dev/null || true
+    echo "==> 1/3  Stopping ydotool user service (if present)"
+    USER_UID="$(id -u "$REAL_USER")"
+    RUNTIME_DIR="/run/user/$USER_UID"
+    if [ -d "$RUNTIME_DIR" ]; then
+        sudo -u "$REAL_USER" \
+            XDG_RUNTIME_DIR="$RUNTIME_DIR" \
+            DBUS_SESSION_BUS_ADDRESS="unix:path=$RUNTIME_DIR/bus" \
+            systemctl --user disable --now ydotool 2>/dev/null || true
+    fi
 
     echo "==> 2/3  Removing '$REAL_USER' from input group"
     gpasswd -d "$REAL_USER" input 2>/dev/null || true
@@ -108,28 +118,52 @@ echo "==> 3/4  Adding '$REAL_USER' to 'input' group (for /dev/uinput access)"
 groupadd -f input
 usermod -aG input "$REAL_USER"
 
-echo "==> 4/4  Enabling ydotoold daemon"
-# Ubuntu's ydotool package ships /lib/systemd/system/ydotoold.service.
-# If for some reason it's not there, just print a hint — the daemon can
-# still be invoked manually.
-if systemctl list-unit-files 2>/dev/null | grep -q '^ydotoold\.service'; then
-    systemctl enable --now ydotoold
-    echo "    ydotoold systemd unit enabled."
+echo "==> 4/4  Enabling ydotoold daemon (user-level systemd unit)"
+# Ubuntu 26.04's `ydotool` package ships only a USER-level unit at
+# /usr/lib/systemd/user/ydotool.service (note: file name is ydotool.service,
+# not ydotoold.service — the binary inside is ydotoold). We enable it on
+# the real user's behalf so the daemon auto-starts at login.
+#
+# Note: the *first* start will likely fail with `Permission denied` on
+# /dev/uinput because the user's systemd manager was started before this
+# script added them to the `input` group, and systemd-user inherits its
+# supplementary groups from PAM session creation time. A full GNOME
+# logout (or reboot) is required for the manager to pick up the new group.
+USER_UID="$(id -u "$REAL_USER")"
+RUNTIME_DIR="/run/user/$USER_UID"
+if [ -d "$RUNTIME_DIR" ]; then
+    if sudo -u "$REAL_USER" \
+        XDG_RUNTIME_DIR="$RUNTIME_DIR" \
+        DBUS_SESSION_BUS_ADDRESS="unix:path=$RUNTIME_DIR/bus" \
+        systemctl --user enable --now ydotool 2>&1; then
+        echo "    ydotool.service (user) enabled. (Will start cleanly after"
+        echo "    you reboot / fully log out of GNOME — see message below.)"
+    else
+        echo "    Could not enable user unit non-interactively — run this"
+        echo "    after rebooting / fully logging back in:"
+        echo "      systemctl --user enable --now ydotool"
+    fi
 else
-    echo "    No ydotoold.service unit shipped — start the daemon manually:"
-    echo "      sudo ydotoold &"
+    echo "    No active user systemd manager (no $RUNTIME_DIR) — enable"
+    echo "    after your next login:"
+    echo "      systemctl --user enable --now ydotool"
 fi
 
 echo ""
-echo "Versions:"
-wl-paste --version 2>&1 | head -1 || true
-ydotool --version 2>&1 | head -1 || true
+echo "Done."
 echo ""
-echo "Done. IMPORTANT: log out and back in (or run 'newgrp input') for the"
-echo "'input' group membership to take effect — without it, ydotool fails"
-echo "with a permission error on /dev/uinput."
+echo "============================================================"
+echo " IMPORTANT: REBOOT (or fully log out of GNOME and log back in)"
+echo "============================================================"
 echo ""
-echo "Quick smoke test (after relog):"
+echo "The 'input' group must be applied to your systemd user manager,"
+echo "not just to new shell sessions. SSH-relog or reopening a terminal"
+echo "is NOT enough — systemd --user persists across those. ydotoold"
+echo "will fail with 'failed to open uinput device: Permission denied'"
+echo "until you reboot or log out of the GNOME desktop session."
+echo ""
+echo "After reboot, smoke test:"
+echo "  systemctl --user is-active ydotool            # should print 'active'"
 echo "  echo hello | wl-copy && wl-paste              # clipboard roundtrip"
 echo "  wl-paste --primary                            # read mouse selection"
-echo "  ydotool key 29:1 47:1 47:0 29:0               # send Ctrl+V"
+echo "  # (skip the ydotool key smoke test — it will type into your focused window)"
