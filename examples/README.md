@@ -21,6 +21,7 @@ everything.
 |---|---|---|
 | [`pydantic-ai-hello.py`](pydantic-ai-hello.py) | PydanticAI + Ollama: schema-validated structured extraction from free-form text | `./examples/pydantic-ai-hello.py` |
 | [`pydantic-ai-image.py`](pydantic-ai-image.py) | Multimodal: pass an image to a vision-capable model (Gemma 4) and get structured `ImageDescription` back | `./examples/pydantic-ai-image.py path/to/photo.jpg` |
+| [`pydantic-ai-groq.py`](pydantic-ai-groq.py) | Local Ollama vs cloud Groq head-to-head — same prompt, same schema, two backends, prints time comparison | `./examples/pydantic-ai-groq.py` |
 
 ## Switching the model
 
