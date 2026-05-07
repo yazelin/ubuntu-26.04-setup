@@ -21,6 +21,7 @@ Personal notes and scripts for things I configured after a fresh Ubuntu 26.04 LT
 | [`scripts/setup-ollama.sh`](scripts/setup-ollama.sh) | Install [Ollama](https://ollama.com) with auto GPU detection (CUDA / ROCm / Intel Vulkan / CPU). Optional `--with-pi` for [Pi](https://pi.dev) coding agent. Supports `--uninstall`. Run `--help` for use-case examples. | `sudo bash` |
 | [`scripts/setup-rust.sh`](scripts/setup-rust.sh) | Install Rust toolchain via [rustup](https://rustup.rs) (user-level, latest stable). Supports `--update` and `--uninstall`. | `bash` (no sudo) |
 | [`scripts/setup-tauri-deps.sh`](scripts/setup-tauri-deps.sh) | Install Linux system libraries needed to build [Tauri 2](https://v2.tauri.app) apps (WebKitGTK, etc). | `sudo bash` |
+| [`scripts/setup-wayland-input.sh`](scripts/setup-wayland-input.sh) | Install Wayland clipboard + input-emulation tooling (`wl-clipboard`, `ydotool` daemon, /dev/uinput access). For "select + dictate + auto-paste" style tools (mori-desktop, ZeroType-like inline rewrite, Talon-like dictation). Adds user to `input` group; supports `--uninstall`. | `sudo bash` |
 
 ## Examples
 
@@ -87,3 +88,4 @@ At your own risk — re-test with a long prompt (300+ tokens) before trusting it
 - [x] Ollama (local LLM runtime, GPU auto-detected)
 - [x] Rust via rustup
 - [x] Tauri 2 build dependencies
+- [x] Wayland clipboard + input emulation (wl-clipboard, ydotool)
