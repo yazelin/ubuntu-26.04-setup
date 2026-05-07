@@ -18,6 +18,7 @@
 #   librsvg2-dev               SVG rendering for icons
 #   libsoup-3.0-dev            HTTP client used by WebKitGTK
 #   javascriptcoregtk-4.1-dev  JS runtime headers
+#   libasound2-dev             ALSA headers (audio crates: cpal, rodio)
 #   pkg-config build-essential curl wget file   build glue
 #
 # Reference: https://v2.tauri.app/start/prerequisites/#linux
@@ -51,6 +52,9 @@ PACKAGES=(
     librsvg2-dev
     libsoup-3.0-dev
     libjavascriptcoregtk-4.1-dev
+    # ALSA headers — needed by audio crates (cpal/rodio) used in Tauri apps
+    # that do mic capture or audio playback (e.g. mori-desktop)
+    libasound2-dev
     pkg-config
     build-essential
     curl
