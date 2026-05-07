@@ -53,10 +53,11 @@ done
 
 REAL_USER="${SUDO_USER:-$USER}"
 
-# Candidate packages — `ydotoold` is sometimes split out, sometimes bundled
-# inside the `ydotool` binary package; we filter against apt-cache before
-# install so the script doesn't blow up on whichever Ubuntu we're on.
-CANDIDATES=(wl-clipboard ydotool ydotoold)
+# Candidate packages. `ydotool` already ships /usr/bin/ydotoold and the
+# systemd unit on Ubuntu — there is no separate `ydotoold` package on
+# 26.04 (Resolute). We still filter against apt-cache madison so the
+# script degrades gracefully if some entry vanishes in a future release.
+CANDIDATES=(wl-clipboard ydotool)
 
 if [ "$ACTION" = "uninstall" ]; then
     echo "==> 1/3  Stopping ydotoold service (if present)"
@@ -88,12 +89,19 @@ DEBIAN_FRONTEND=noninteractive apt-get update
 echo "==> 2/4  Installing Wayland clipboard + input-emulation packages"
 TO_INSTALL=()
 for pkg in "${CANDIDATES[@]}"; do
-    if apt-cache show "$pkg" >/dev/null 2>&1; then
+    # apt-cache madison prints nothing for "no installation candidate",
+    # which is more reliable than `apt-cache show` (which can succeed
+    # for virtual / referenced-only package names).
+    if [ -n "$(apt-cache madison "$pkg" 2>/dev/null)" ]; then
         TO_INSTALL+=("$pkg")
     else
-        echo "    (skipping '$pkg' — not in apt; likely bundled in another pkg)"
+        echo "    (skipping '$pkg' — no installation candidate on this release)"
     fi
 done
+if [ "${#TO_INSTALL[@]}" -eq 0 ]; then
+    echo "Nothing installable found. Aborting."
+    exit 1
+fi
 DEBIAN_FRONTEND=noninteractive apt-get install -y "${TO_INSTALL[@]}"
 
 echo "==> 3/4  Adding '$REAL_USER' to 'input' group (for /dev/uinput access)"
