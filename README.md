@@ -22,6 +22,7 @@ Personal notes and scripts for things I configured after a fresh Ubuntu 26.04 LT
 | [`scripts/setup-rust.sh`](scripts/setup-rust.sh) | Install Rust toolchain via [rustup](https://rustup.rs) (user-level, latest stable). Supports `--update` and `--uninstall`. | `bash` (no sudo) |
 | [`scripts/setup-tauri-deps.sh`](scripts/setup-tauri-deps.sh) | Install Linux system libraries needed to build [Tauri 2](https://v2.tauri.app) apps (WebKitGTK, etc). | `sudo bash` |
 | [`scripts/setup-wayland-input.sh`](scripts/setup-wayland-input.sh) | Install Wayland clipboard + input-emulation tooling (`wl-clipboard`, `ydotool` daemon, /dev/uinput access). For "select + dictate + auto-paste" style tools (mori-desktop, ZeroType-like inline rewrite, Talon-like dictation). Adds user to `input` group; supports `--uninstall`. | `sudo bash` |
+| [`scripts/setup-github-cli.sh`](scripts/setup-github-cli.sh) | Install [GitHub CLI](https://cli.github.com) (`gh`) from GitHub's official apt repo. After install, run `gh auth login` to authenticate. | `sudo bash` |
 
 ## Examples
 
@@ -89,3 +90,4 @@ At your own risk — re-test with a long prompt (300+ tokens) before trusting it
 - [x] Rust via rustup
 - [x] Tauri 2 build dependencies
 - [x] Wayland clipboard + input emulation (wl-clipboard, ydotool)
+- [x] GitHub CLI (gh)
