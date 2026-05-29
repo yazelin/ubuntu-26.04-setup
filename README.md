@@ -23,6 +23,7 @@ Personal notes and scripts for things I configured after a fresh Ubuntu 26.04 LT
 | [`scripts/setup-tauri-deps.sh`](scripts/setup-tauri-deps.sh) | Install Linux system libraries needed to build [Tauri 2](https://v2.tauri.app) apps (WebKitGTK, etc). | `sudo bash` |
 | [`scripts/setup-wayland-input.sh`](scripts/setup-wayland-input.sh) | Install Wayland clipboard + input-emulation tooling (`wl-clipboard`, `ydotool` daemon, /dev/uinput access). For "select + dictate + auto-paste" style tools (mori-desktop, ZeroType-like inline rewrite, Talon-like dictation). Adds user to `input` group; supports `--uninstall`. | `sudo bash` |
 | [`scripts/setup-github-cli.sh`](scripts/setup-github-cli.sh) | Install [GitHub CLI](https://cli.github.com) (`gh`) from GitHub's official apt repo. After install, run `gh auth login` to authenticate. | `sudo bash` |
+| [`scripts/setup-zellij.sh`](scripts/setup-zellij.sh) | Install [Zellij](https://zellij.dev) terminal multiplexer (split panes / tabs / persistent sessions) from the GitHub release binary into `~/.local/bin` — no apt, no compile. Bundles a set of ready-to-use Claude Code layouts (`dev` / `dual` / `grid4` / `grid6` / `tabs4` / `tabs6` / `hybrid` / `cockpit`), installed non-destructively. Display-server agnostic, so safe on Wayland-only 26.04. Supports `--update` / `--uninstall` / `--purge`. | `bash` (no sudo) |
 
 ## Examples
 
@@ -76,6 +77,7 @@ At your own risk — re-test with a long prompt (300+ tokens) before trusting it
 - **Node.js**: managed via `fnm`, not system apt
 - **Python**: managed via `uv` (handles Python versions, venvs, packages)
 - **Rust**: managed via `rustup` (handles Rust versions, components, targets)
+- **Terminal multiplexer**: Zellij, from its GitHub release binary (not apt) — same "project artifact over distro package" pattern; pure-text tool, unaffected by Wayland
 - **Git**: system apt (already installed by default on Ubuntu)
 
 ## Checklist
@@ -91,3 +93,4 @@ At your own risk — re-test with a long prompt (300+ tokens) before trusting it
 - [x] Tauri 2 build dependencies
 - [x] Wayland clipboard + input emulation (wl-clipboard, ydotool)
 - [x] GitHub CLI (gh)
+- [x] Zellij terminal multiplexer (split panes, persistent sessions)
