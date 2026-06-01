@@ -8,7 +8,7 @@
 # ///
 """
 Local Ollama vs cloud Groq head-to-head — same prompt, same Pydantic
-schema, two backends. Prints wall-clock time + tokens/sec for each.
+schema, two backends. Prints wall-clock time for each.
 
 The point: PydanticAI doesn't care where the OpenAI-compatible endpoint
 lives. Switching from local CPU inference to Groq's LPU is two lines
