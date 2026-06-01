@@ -29,9 +29,9 @@ Personal notes and scripts for things I configured after a fresh Ubuntu 26.04 LT
 
 Runnable demos pairing the local Ollama install with Python tooling — see [`examples/`](examples/).
 
-- [`examples/pydantic-ai-hello.py`](examples/pydantic-ai-hello.py) — PydanticAI + Ollama, schema-validated structured extraction
-- [`examples/pydantic-ai-image.py`](examples/pydantic-ai-image.py) — Multimodal: pass an image to a vision model (Gemma 4), get a structured `ImageDescription` back
-- [`examples/pydantic-ai-groq.py`](examples/pydantic-ai-groq.py) — Local Ollama vs cloud Groq head-to-head: same prompt, same schema, two backends, prints a wall-clock time comparison
+- [`examples/pydantic-ai-hello.py`](examples/pydantic-ai-hello.py) — PydanticAI + Ollama: schema-validated structured extraction from free-form text
+- [`examples/pydantic-ai-image.py`](examples/pydantic-ai-image.py) — Multimodal: pass an image to a vision-capable model (Gemma 4) and get structured `ImageDescription` back
+- [`examples/pydantic-ai-groq.py`](examples/pydantic-ai-groq.py) — Local Ollama vs cloud Groq head-to-head — same prompt, same schema, two backends, prints time comparison
 
 ## Notes
 
